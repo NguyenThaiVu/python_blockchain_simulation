@@ -14,14 +14,10 @@ class User:
         self.amount_coin = amount_coin
 
         # Generate public key and private key
-
         public_key, private_key = rsa.newkeys(512)
-
-        # private_key = RSA.generate(2048)
-        # public_key = private_key.publickey().export_key()
-
         self.private_key = private_key
         self.public_key = public_key
+
         self.generate_address()
 
     def __str__(self):
@@ -63,7 +59,6 @@ class User:
         transaction_info = str(transaction.to_dict()).encode()
         signature = rsa.sign(transaction_info, self.private_key, 'SHA-256')
         
-        # Sign this transaction by the sender's private key
         transaction.signature = signature
 
 

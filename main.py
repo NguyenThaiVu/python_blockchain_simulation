@@ -20,7 +20,6 @@ def main():
     blockchain.add_user(user_3)
 
     # 1. User create transaction
-
     new_transaction_1 = user_1.create_transaction(user_2.address, 10)
     new_transaction_2 = user_2.create_transaction(user_3.address, 20)
 
@@ -29,7 +28,7 @@ def main():
     blockchain.add_new_transaction(new_transaction_1)
     blockchain.add_new_transaction(new_transaction_2)
     
-    
+
     # 3. Perform the whole mining process
     blockchain.mining_process()
 
@@ -41,8 +40,6 @@ def main():
     print("\n---------- User account ----------")
     for user in blockchain.list_user:
         print(user, "\n")
-
-
 
     
 
