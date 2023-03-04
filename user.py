@@ -1,6 +1,10 @@
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 import base58
+import hashlib
+import rsa
+
+from transaction import *
 
 class User:
 
@@ -9,9 +13,12 @@ class User:
         self.name = name
         self.amount_coin = amount_coin
 
-        # Generate public and private key
-        private_key = RSA.generate(2048)
-        public_key = private_key.publickey().export_key()
+        # Generate public key and private key
+
+        public_key, private_key = rsa.newkeys(512)
+
+        # private_key = RSA.generate(2048)
+        # public_key = private_key.publickey().export_key()
 
         self.private_key = private_key
         self.public_key = public_key
@@ -27,17 +34,42 @@ class User:
         This function will generate the receiver's address.
         Which is typically derived from the receiver's public key using a hash function.
         """
-        # Hash the receiver's public key with SHA256
-        hash = SHA256.new(self.public_key)
-        hash_bytes = hash.digest()
-
-        address_bytes = hash_bytes[:20]
-
-        # Add the version byte to the beginning of the address bytes
-        version_byte = b'\x00'
-        address_bytes = version_byte + address_bytes
-
-        # Encode the address bytes in base58
+        
+        public_key_der = rsa.PublicKey.save_pkcs1(self.public_key, format='DER')    # Convert the public key to DER format
+        hash = hashlib.sha256(public_key_der).digest()    # Hash the public key using SHA-256
+        
+        # Hash the result again using RIPEMD-160
+        ripe_md160 = hashlib.new('ripemd160')
+        ripe_md160.update(hash)
+        hash = ripe_md160.digest()
+        
+        # Add a network byte (0x00 for mainnet, 0x6f for testnet)
+        network_byte = b'\x00'
+        hash_with_network_byte = network_byte + hash
+        
+        # Compute the checksum by hashing the hash_with_network_byte twice and taking the first 4 bytes
+        checksum = hashlib.sha256(hashlib.sha256(hash_with_network_byte).digest()).digest()[:4]
+        
+        address_bytes = hash_with_network_byte + checksum        
         address = base58.b58encode(address_bytes)
         
-        self.address = address
+        self.address = address.decode()
+
+
+    def sign_transaction(self, transaction):
+        """
+        This method use the sender's private key to sign the transaction data and generate a signature.
+        """
+        transaction_info = str(transaction.to_dict()).encode()
+        signature = rsa.sign(transaction_info, self.private_key, 'SHA-256')
+        
+        # Sign this transaction by the sender's private key
+        transaction.signature = signature
+
+
+    def create_transaction(self, recipient_address, amount_to_send):
+
+        new_transaction = Transaction_class(self.public_key, recipient_address, amount_to_send)
+        self.sign_transaction(new_transaction)
+
+        return new_transaction

@@ -29,7 +29,7 @@ class Transaction:
             return False
 
 # Example usage
-sender_private_key, sender_public_key = rsa.newkeys(512)
+sender_public_key, sender_private_key = rsa.newkeys(512)
 recipient_address = '1KZrJN8my1xNpdkFDrdMfJPNjETndzHQUb'
 amount = 0.001
 

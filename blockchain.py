@@ -76,8 +76,19 @@ class BlockChain:
         return True
         
 
+    def verify_transaction(self, transaction):
+        transaction_info = str(transaction.to_dict()).encode()
+        try:
+            rsa.verify(transaction_info, transaction.signature, transaction.sender_public_key)
+            return True
+        except rsa.pkcs1.VerificationError:
+            return False
+
     def add_new_transaction(self, new_transaction):
-        self.unconfirmed_transactions.append(new_transaction)
+        if self.verify_transaction(new_transaction) == True:
+            self.unconfirmed_transactions.append(new_transaction)
+        else:
+            print("[ERROR] Transaction is not verified")
  
     
     def mining_process(self):
@@ -104,7 +115,7 @@ class BlockChain:
             self.unconfirmed_transactions = []
             print("[INFO] Successfully add new block.")
 
-            new_block.confirm_transaction(True)
+            new_block.confirm_transaction(self.list_user, is_confirm=True)
         else:
             print("[ERROR] Add new block to chain fail") 
 

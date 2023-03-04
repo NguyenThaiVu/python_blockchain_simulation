@@ -33,7 +33,7 @@ class Block:
         return str_result
     
 
-    def confirm_transaction(self, is_confirm=False):
+    def confirm_transaction(self, list_user, is_confirm=False):
         """
         This function will send coin from sender to recipient.
         """
@@ -41,4 +41,4 @@ class Block:
             return
         
         for transaction in self.transaction_list:
-            transaction_confirmation(transaction)
+            transaction_confirmation(transaction, list_user)
