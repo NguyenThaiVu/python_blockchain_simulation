@@ -14,6 +14,7 @@ def main():
     user_1 = User("123", "Anna", 100)
     user_2 = User("100", "Bod", 45)
     user_3 = User("999", "Cam", 300)
+    user_4 = User("1000", "Dan", 0)
 
     blockchain.add_user(user_1)
     blockchain.add_user(user_2)
