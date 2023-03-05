@@ -1,5 +1,3 @@
-from Crypto.Hash import SHA256
-from Crypto.PublicKey import RSA
 import base58
 import hashlib
 import rsa
@@ -21,7 +19,7 @@ class User:
         self.generate_address()
 
     def __str__(self):
-        str_result = "Id: {} \nName: {} \nAmount coin: {}".format(self.id, self.name, self.amount_coin)
+        str_result = "Name: {} \nAmount coin: {}".format(self.name, self.amount_coin)
         return str_result
     
 

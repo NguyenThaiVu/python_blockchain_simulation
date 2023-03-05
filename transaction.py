@@ -28,7 +28,9 @@ def serialize_transaction(transaction):
     This function help json module know how to handle `Transaction` objects
     """
     if isinstance(transaction, Transaction_class):
-        return {'sender': transaction.sender_public_key, 'recipient': transaction.recipient_address, 'amount_to_send': transaction.amount_to_send}
+        return {'sender': transaction.sender_public_key,\
+                'recipient': transaction.recipient_address,\
+                'amount_to_send': transaction.amount_to_send}
     
 
 def transaction_confirmation(transaction, list_user):

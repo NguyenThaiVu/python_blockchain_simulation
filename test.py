@@ -1,47 +1,54 @@
-import hashlib
+import json
 import rsa
+import hashlib
+import base58
 
-class Transaction:
-    def __init__(self, sender_private_key, sender_public_key, recipient_address, amount):
-        self.sender_private_key = sender_private_key
-        self.sender_public_key = sender_public_key
-        self.recipient_address = recipient_address
-        self.amount = amount
+def generate_address(public_key):
+        """
+        This function will generate the receiver's address.
+        Which is typically derived from the receiver's public key using a hash function.
+        """
         
-    def to_dict(self):
-        return {
-            'sender_public_key': self.sender_public_key.save_pkcs1().decode(),
-            'recipient_address': self.recipient_address,
-            'amount': self.amount
-        }
+        public_key_der = rsa.PublicKey.save_pkcs1(public_key, format='DER')    # Convert the public key to DER format
+        hash = hashlib.sha256(public_key_der).digest()    # Hash the public key using SHA-256
+        
+        # Hash the result again using RIPEMD-160
+        ripe_md160 = hashlib.new('ripemd160')
+        ripe_md160.update(hash)
+        hash = ripe_md160.digest()
+        
+        # Add a network byte (0x00 for mainnet, 0x6f for testnet)
+        network_byte = b'\x00'
+        hash_with_network_byte = network_byte + hash
+        
+        # Compute the checksum by hashing the hash_with_network_byte twice and taking the first 4 bytes
+        checksum = hashlib.sha256(hashlib.sha256(hash_with_network_byte).digest()).digest()[:4]
+        
+        address_bytes = hash_with_network_byte + checksum        
+        address = base58.b58encode(address_bytes)
+        
+        return address.decode()
+
+def save_user_to_json(id, name, amount_coin, private_key, public_key, address):
+    user_data = {
+                    'id': id,\
+                    'name': name,\
+                    'amount_coin': amount_coin,\
+                    'private_key': private_key,\
+                    'public_key': public_key,\
+                    'address': address                  
+                }
+
+    filename = r'user/{id}.json'
     
-    def sign_transaction(self):
-        transaction_hash = hashlib.sha256(str(self.to_dict()).encode('utf-8')).hexdigest()
-        signature = rsa.sign(transaction_hash.encode('utf-8'), self.sender_private_key, 'SHA-256')
-        return signature
-    
-    def verify_transaction(self, signature):
-        transaction_hash = hashlib.sha256(str(self.to_dict()).encode('utf-8')).hexdigest()
-        try:
-            rsa.verify(transaction_hash.encode('utf-8'), signature, self.sender_public_key)
-            return True
-        except rsa.pkcs1.VerificationError:
-            return False
+    with open(filename, 'w') as f:
+        json.dump(user_data, f)
 
 # Example usage
-sender_public_key, sender_private_key = rsa.newkeys(512)
-recipient_address = '1KZrJN8my1xNpdkFDrdMfJPNjETndzHQUb'
-amount = 0.001
+id = '100'
+name = 'Alice'
+amount_coin = 100
+public_key, private_key = rsa.newkeys(512)
+address = generate_address(public_key)
 
-# Create a new transaction
-transaction = Transaction(sender_private_key, sender_public_key, recipient_address, amount)
-
-# Sign the transaction
-signature = transaction.sign_transaction()
-
-# Verify the transaction
-is_valid = transaction.verify_transaction(signature)
-
-print('Transaction:', transaction.to_dict())
-print('Signature:', signature)
-print('Is valid?', is_valid)
+save_user_to_json(id, name, amount_coin, private_key, public_key, address)

@@ -2,17 +2,20 @@ import sys
 sys.dont_write_bytecode = True
 
 from block import *
-from blockchain import * 
+from blockchain import *
 from transaction import *
 from user import *
+from validator import *
 
 def main():
         
     blockchain = BlockChain()
+    validator = Validator(blockchain)
+    blockchain.add_validator(validator)
 
     # 0. Create user
     user_1 = User("123", "Anna", 100)
-    user_2 = User("100", "Bod", 45)
+    user_2 = User("100", "Bod", 200)
     user_3 = User("999", "Cam", 300)
 
     blockchain.add_user(user_1)
@@ -25,8 +28,8 @@ def main():
 
 
     # 2. Transactions are added to unconfirm pool
-    blockchain.add_new_transaction(new_transaction_1)
-    blockchain.add_new_transaction(new_transaction_2)
+    blockchain.broadcast_transaction(new_transaction_1)
+    blockchain.broadcast_transaction(new_transaction_2)
     
 
     # 3. Perform the whole mining process
@@ -35,7 +38,7 @@ def main():
 
     # ===== Print result =====
     # print("\n---------- Blockchain info ----------")
-    # blockchain.print_chain
+    # blockchain.print_chain()
 
     print("\n---------- User account ----------")
     for user in blockchain.list_user:
